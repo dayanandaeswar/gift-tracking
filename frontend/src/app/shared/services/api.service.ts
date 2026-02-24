@@ -6,7 +6,6 @@ import { FunctionEvent, Person, FunctionReport, PersonReport } from '../models/m
 @Injectable({ providedIn: 'root' })
 export class ApiService {
     private base = environment.apiUrl;
-
     constructor(private http: HttpClient) { }
 
     // Functions
@@ -25,12 +24,12 @@ export class ApiService {
 
     // Gifts Received
     createGiftReceived(data: any) { return this.http.post(`${this.base}/gifts-received`, data); }
-    updateGiftReceived(id: number, data: any) { return this.http.put(`${this.base}/gifts-received/${id}`, data); }
+    updateGiftReceived(id: number, d: any) { return this.http.put(`${this.base}/gifts-received/${id}`, d); }
     deleteGiftReceived(id: number) { return this.http.delete(`${this.base}/gifts-received/${id}`); }
 
     // Gifts Given
     createGiftGiven(data: any) { return this.http.post(`${this.base}/gifts-given`, data); }
-    updateGiftGiven(id: number, data: any) { return this.http.put(`${this.base}/gifts-given/${id}`, data); }
+    updateGiftGiven(id: number, d: any) { return this.http.put(`${this.base}/gifts-given/${id}`, d); }
     deleteGiftGiven(id: number) { return this.http.delete(`${this.base}/gifts-given/${id}`); }
 
     // Reports

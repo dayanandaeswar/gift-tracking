@@ -5,14 +5,18 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatSidenavModule } from '@angular/material/sidenav';
 import { MatListModule } from '@angular/material/list';
+import { inject } from '@angular/core';
 import { AuthService } from '../auth/auth.service';
 
 @Component({
-    selector: 'app-layout',
-    standalone: true,
-    imports: [RouterModule, MatToolbarModule, MatButtonModule, MatIconModule, MatSidenavModule, MatListModule],
-    template: `
-    <mat-sidenav-container class="sidenav-container">
+  selector: 'app-layout',
+  standalone: true,
+  imports: [
+    RouterModule, MatToolbarModule, MatButtonModule,
+    MatIconModule, MatSidenavModule, MatListModule,
+  ],
+  template: `
+    <mat-sidenav-container class="container">
       <mat-sidenav mode="side" opened class="sidenav">
         <div class="sidenav-header">
           <mat-icon>card_giftcard</mat-icon>
@@ -29,7 +33,7 @@ import { AuthService } from '../auth/auth.service';
           </a>
         </mat-nav-list>
         <div class="sidenav-footer">
-          <button mat-button (click)="logout()" class="logout-btn">
+          <button mat-button class="logout-btn" (click)="logout()">
             <mat-icon>logout</mat-icon> Logout
           </button>
         </div>
@@ -39,10 +43,17 @@ import { AuthService } from '../auth/auth.service';
       </mat-sidenav-content>
     </mat-sidenav-container>
   `,
-    styles: [`
-    .sidenav-container { height: 100vh; }
-    .sidenav { width: 220px; background: #3f51b5; color: white; display: flex; flex-direction: column; }
-    .sidenav-header { padding: 20px 16px; display: flex; align-items: center; gap: 10px; font-size: 18px; font-weight: bold; border-bottom: 1px solid rgba(255,255,255,0.2); }
+  styles: [`
+    .container { height: 100vh; }
+    .sidenav {
+      width: 220px; background: #3f51b5; color: white;
+      display: flex; flex-direction: column;
+    }
+    .sidenav-header {
+      padding: 20px 16px; display: flex; align-items: center;
+      gap: 10px; font-size: 18px; font-weight: bold;
+      border-bottom: 1px solid rgba(255,255,255,0.2);
+    }
     .sidenav-footer { margin-top: auto; padding: 16px; }
     .logout-btn { color: white; width: 100%; }
     .active-link { background: rgba(255,255,255,0.15) !important; }
@@ -50,6 +61,6 @@ import { AuthService } from '../auth/auth.service';
   `],
 })
 export class LayoutComponent {
-    constructor(private auth: AuthService) { }
-    logout() { this.auth.logout(); }
+  private auth = inject(AuthService);
+  logout() { this.auth.logout(); }
 }

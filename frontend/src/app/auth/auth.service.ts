@@ -13,11 +13,16 @@ export class AuthService {
 
     login(username: string, password: string) {
         return this.http
-            .post<{ access_token: string }>(`${environment.apiUrl}/auth/login`, { username, password })
-            .pipe(tap((res) => {
-                localStorage.setItem(this.TOKEN_KEY, res.access_token);
-                this.isLoggedIn$.next(true);
-            }));
+            .post<{ access_token: string; user: any }>(
+                `${environment.apiUrl}/auth/login`,
+                { username, password },
+            )
+            .pipe(
+                tap((res) => {
+                    localStorage.setItem(this.TOKEN_KEY, res.access_token);
+                    this.isLoggedIn$.next(true);
+                }),
+            );
     }
 
     logout() {

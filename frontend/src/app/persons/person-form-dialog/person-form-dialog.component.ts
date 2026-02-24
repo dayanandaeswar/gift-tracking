@@ -1,6 +1,6 @@
-import { Component, inject, Inject, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectionStrategy, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ReactiveFormsModule, FormBuilder, Validators, FormGroup } from '@angular/forms';
+import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { MatDialogModule, MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
@@ -11,7 +11,11 @@ import { Person } from '../../shared/models/models';
 @Component({
   selector: 'app-person-form-dialog',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, MatDialogModule, MatFormFieldModule, MatInputModule, MatButtonModule],
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [
+    CommonModule, ReactiveFormsModule, MatDialogModule,
+    MatFormFieldModule, MatInputModule, MatButtonModule,
+  ],
   template: `
     <h2 mat-dialog-title>{{ data ? 'Edit' : 'New' }} Person</h2>
     <mat-dialog-content>
@@ -32,18 +36,22 @@ import { Person } from '../../shared/models/models';
     </mat-dialog-content>
     <mat-dialog-actions align="end">
       <button mat-button mat-dialog-close>Cancel</button>
-      <button mat-raised-button color="primary" (click)="save()" [disabled]="form.invalid">
+      <button mat-raised-button color="primary"
+        (click)="save()" [disabled]="form.invalid">
         {{ data ? 'Update' : 'Create' }}
       </button>
     </mat-dialog-actions>
   `,
-  styles: [`.form { min-width: 380px; display: flex; flex-direction: column; gap: 4px; } .w-full { width: 100%; }`],
+  styles: [`
+    .form { min-width: 380px; display: flex; flex-direction: column; gap: 4px; }
+    .w-full { width: 100%; }
+  `],
 })
 export class PersonFormDialogComponent implements OnInit {
   private fb = inject(FormBuilder);
   private api = inject(ApiService);
   private ref = inject(MatDialogRef<PersonFormDialogComponent>);
-  public data = inject<Person | null>(MAT_DIALOG_DATA);
+  data = inject<Person | null>(MAT_DIALOG_DATA);
 
   form: FormGroup = this.fb.group({
     name: ['', Validators.required],
@@ -61,4 +69,3 @@ export class PersonFormDialogComponent implements OnInit {
     obs.subscribe(() => this.ref.close(true));
   }
 }
-

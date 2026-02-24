@@ -6,6 +6,7 @@ export interface FunctionEvent {
     description?: string;
     eventDate?: string;
     giftsReceived?: GiftReceived[];
+    createdAt?: string;
 }
 
 export interface Person {
@@ -13,6 +14,7 @@ export interface Person {
     name: string;
     address?: string;
     phone?: string;
+    createdAt?: string;
 }
 
 export interface GiftReceived {
@@ -26,12 +28,13 @@ export interface GiftReceived {
     quantity: number;
     notes?: string;
     receivedDate: string;
+    createdAt?: string;
 }
 
 export interface GiftGiven {
     id: number;
     person: Person;
-    functionName: string;   // inline, no FK
+    functionName: string;
     giftType: GiftType;
     amount?: number;
     voucherDetails?: string;
@@ -39,17 +42,28 @@ export interface GiftGiven {
     quantity: number;
     notes?: string;
     givenDate: string;
+    createdAt?: string;
 }
 
 export interface FunctionReport {
     function: FunctionEvent;
     giftsReceived: GiftReceived[];
-    summary: { totalCount: number; totalCash: number; totalVouchers: number; totalItems: number };
+    summary: {
+        totalCount: number;
+        totalCash: number;
+        totalVouchers: number;
+        totalItems: number;
+    };
 }
 
 export interface PersonReport {
     person: Person;
     giftsReceived: GiftReceived[];
     giftsGiven: GiftGiven[];
-    summary: { totalReceived: number; totalGiven: number; totalCashReceived: number; totalCashGiven: number };
+    summary: {
+        totalReceived: number;
+        totalGiven: number;
+        totalCashReceived: number;
+        totalCashGiven: number;
+    };
 }

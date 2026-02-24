@@ -1,4 +1,7 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, inject, OnInit } from '@angular/core';
+import {
+  Component, OnInit,
+  ChangeDetectionStrategy, ChangeDetectorRef, inject,
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { MatTableModule } from '@angular/material/table';
@@ -14,7 +17,10 @@ import { PersonFormDialogComponent } from '../person-form-dialog/person-form-dia
   selector: 'app-person-list',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [CommonModule, RouterModule, MatTableModule, MatButtonModule, MatIconModule, MatCardModule, MatDialogModule],
+  imports: [
+    CommonModule, RouterModule, MatTableModule, MatButtonModule,
+    MatIconModule, MatCardModule, MatDialogModule,
+  ],
   template: `
     <div class="page">
       <div class="page-header">
@@ -40,13 +46,16 @@ import { PersonFormDialogComponent } from '../person-form-dialog/person-form-dia
           <ng-container matColumnDef="actions">
             <th mat-header-cell *matHeaderCellDef>Actions</th>
             <td mat-cell *matCellDef="let p">
-              <button mat-icon-button color="primary" [routerLink]="['/persons', p.id]" title="View Gifts">
+              <button mat-icon-button color="primary"
+                [routerLink]="['/persons', p.id]" title="View Gifts">
                 <mat-icon>card_giftcard</mat-icon>
               </button>
-              <button mat-icon-button color="accent" (click)="openDialog(p)" title="Edit">
+              <button mat-icon-button color="accent"
+                (click)="openDialog(p)" title="Edit">
                 <mat-icon>edit</mat-icon>
               </button>
-              <button mat-icon-button color="warn" (click)="delete(p)" title="Delete">
+              <button mat-icon-button color="warn"
+                (click)="delete(p)" title="Delete">
                 <mat-icon>delete</mat-icon>
               </button>
             </td>
@@ -62,10 +71,13 @@ import { PersonFormDialogComponent } from '../person-form-dialog/person-form-dia
   `,
   styles: [`
     .page { padding: 24px; }
-    .page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+    .page-header {
+      display: flex; justify-content: space-between;
+      align-items: center; margin-bottom: 20px;
+    }
     .full-w { width: 100%; }
     .empty { padding: 32px; text-align: center; color: #999; }
-    .hover-row:hover { background: #f5f5f5; }
+    .hover-row:hover { background: #f5f5f5; cursor: pointer; }
   `],
 })
 export class PersonListComponent implements OnInit {
@@ -81,7 +93,7 @@ export class PersonListComponent implements OnInit {
   load() {
     this.api.getPersons().subscribe((data) => {
       this.persons = data;
-      this.cdr.markForCheck();    // ← add
+      this.cdr.markForCheck();
     });
   }
 

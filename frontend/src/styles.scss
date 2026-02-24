@@ -1,59 +1,289 @@
+// ── @use MUST be the absolute first line ─────────────────────────────
 @use '@angular/material' as mat;
-@include mat.core();
 
+// ── M3 Theme ──────────────────────────────────────────────────────────
+$light-theme: mat.define-theme(
+  (
+    color: (
+      theme-type: light,
+      primary: mat.$violet-palette,
+      tertiary: mat.$azure-palette,
+    ),
+    typography: (
+      brand-family: 'Roboto',
+      bold-weight: 700,
+      medium-weight: 500,
+      regular-weight: 400,
+    ),
+    density: (
+      scale: 0,
+    ),
+  )
+);
+
+$dark-theme: mat.define-theme(
+  (
+    color: (
+      theme-type: dark,
+      primary: mat.$violet-palette,
+      tertiary: mat.$azure-palette,
+    ),
+    density: (
+      scale: 0,
+    ),
+  )
+);
+
+// ── Apply M3 theme globally ───────────────────────────────────────────
+html {
+  @include mat.core();
+  @include mat.all-component-themes($light-theme);
+  @include mat.system-level-colors($light-theme);
+  @include mat.system-level-typography($light-theme);
+  @include mat.typography-hierarchy($light-theme);
+}
+
+// ── Optional: dark mode ───────────────────────────────────────────────
+@media (prefers-color-scheme: dark) {
+  html {
+    @include mat.all-component-colors($dark-theme);
+    @include mat.system-level-colors($dark-theme);
+  }
+}
+
+// ── Global base styles ────────────────────────────────────────────────
 html,
 body {
   height: 100%;
   margin: 0;
   font-family: Roboto, 'Helvetica Neue', sans-serif;
+  background: #f5f5f5;
 }
 
-/* A4 Print Layout */
+* {
+  box-sizing: border-box;
+}
+
+// ── Printing state: hide everything except print container ────────────
+body.printing > *:not(#print-container) {
+  display: none !important;
+}
+
+body.printing #print-container {
+  display: block !important;
+}
+
+// ── Print styles ──────────────────────────────────────────────────────
 @media print {
   @page {
     size: A4 portrait;
     margin: 15mm;
   }
 
+  // Remove ALL scroll/height constraints
+  html,
   body {
+    height: auto !important;
+    overflow: visible !important;
     background: white !important;
   }
 
+  // ── M3: Sidenav container ─────────────────────────────────────────
+  // M3 class: .mat-drawer-container (wraps sidenav)
+  .mat-drawer-container,
   .mat-sidenav-container {
+    height: auto !important;
+    min-height: 0 !important;
+    overflow: visible !important;
     display: block !important;
+    transform: none !important;
+    background: white !important;
   }
+
+  // ── M3: Sidenav content pane ──────────────────────────────────────
+  // M3 class: .mat-drawer-content
+  .mat-drawer-content,
+  .mat-sidenav-content {
+    height: auto !important;
+    min-height: 0 !important;
+    overflow: visible !important;
+    margin-left: 0 !important;
+    transform: none !important;
+    position: static !important;
+  }
+
+  // ── M3: Hide sidebar ──────────────────────────────────────────────
+  .mat-drawer,
   .mat-sidenav {
     display: none !important;
   }
-  .mat-sidenav-content {
-    margin-left: 0 !important;
+
+  // ── M3: Card ──────────────────────────────────────────────────────
+  // M3 class: .mat-mdc-card
+  .mat-mdc-card {
+    box-shadow: none !important;
+    overflow: visible !important;
+    height: auto !important;
+    max-height: none !important;
+    border: 1px solid #ddd !important;
+    margin-bottom: 10px !important;
+    page-break-inside: avoid;
   }
 
+  .mat-mdc-card-content {
+    overflow: visible !important;
+    height: auto !important;
+  }
+
+  // ── M3: Table ─────────────────────────────────────────────────────
+  // M3 class: .mat-mdc-table
+  .mat-mdc-table,
   table {
-    border-collapse: collapse;
-    width: 100%;
+    overflow: visible !important;
+    height: auto !important;
+    width: 100% !important;
+    border-collapse: collapse !important;
   }
 
+  // Show ALL rows — remove any virtual scroll clipping
+  .cdk-virtual-scroll-viewport,
+  .mat-mdc-table .cdk-virtual-scroll-content-wrapper {
+    height: auto !important;
+    overflow: visible !important;
+    position: static !important;
+    transform: none !important;
+  }
+
+  tr,
   th,
   td {
-    border: 1px solid #ddd;
-    padding: 6px 8px;
-    font-size: 11px;
+    border: 1px solid #ccc !important;
+    padding: 5px 8px !important;
+    font-size: 11px !important;
+    page-break-inside: avoid;
+    color: black !important;
   }
 
   th {
-    background: #f5f5f5 !important;
-    -webkit-print-color-adjust: exact;
+    background: #eeeeee !important;
+    font-weight: bold !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  // M3 header/footer rows
+  .mat-mdc-header-row,
+  .mat-mdc-row,
+  .mat-mdc-footer-row {
+    height: auto !important;
+    border-bottom: 1px solid #ccc !important;
+  }
+
+  .mat-mdc-header-cell,
+  .mat-mdc-cell {
+    border: 1px solid #ccc !important;
+    padding: 5px 8px !important;
+    font-size: 11px !important;
+    color: black !important;
+  }
+
+  // ── M3: Tabs — reveal all tab bodies ─────────────────────────────
+  // M3 class: .mat-mdc-tab-body
+  .mat-mdc-tab-group,
+  .mat-mdc-tab-nav-bar {
+    overflow: visible !important;
   }
 
   .mat-mdc-tab-body-wrapper {
-    display: block !important;
+    height: auto !important;
+    overflow: visible !important;
   }
-  .mat-mdc-tab-header {
-    display: none !important;
-  }
+
   .mat-mdc-tab-body {
     display: block !important;
     visibility: visible !important;
+    height: auto !important;
+    overflow: visible !important;
+    position: static !important;
+    opacity: 1 !important;
+  }
+
+  .mat-mdc-tab-body-content {
+    height: auto !important;
+    overflow: visible !important;
+    transform: none !important;
+  }
+
+  // Hide the tab header bar — it's just nav, not content
+  .mat-mdc-tab-header {
+    display: none !important;
+  }
+
+  // ── M3: Chips ─────────────────────────────────────────────────────
+  // M3 class: .mat-mdc-chip
+  .mat-mdc-chip {
+    font-size: 10px !important;
+    height: auto !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  // ── Summary stat cards in print ───────────────────────────────────
+  .summary-row {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    gap: 8px !important;
+    margin-bottom: 12px !important;
+  }
+
+  .stat-card {
+    flex: 1 !important;
+    min-width: 80px !important;
+    border: 1px solid #ccc !important;
+    padding: 8px !important;
+    text-align: center !important;
+    box-shadow: none !important;
+  }
+
+  .stat-val {
+    font-size: 20px !important;
+    font-weight: 700 !important;
+  }
+  .stat-label {
+    font-size: 11px !important;
+  }
+
+  // ── Page layout ───────────────────────────────────────────────────
+  .page {
+    padding: 0 !important;
+  }
+
+  // ── Toggle visibility ─────────────────────────────────────────────
+  .no-print {
+    display: none !important;
+  }
+  .print-only {
+    display: block !important;
+  }
+
+  // ── Print header/footer typography ────────────────────────────────
+  .print-header h1 {
+    font-size: 20px;
+    margin: 0 0 4px;
+  }
+  .print-header p {
+    font-size: 12px;
+    margin: 2px 0;
+    color: #555;
+  }
+  .print-footer p {
+    font-size: 10px;
+    color: #888;
+    text-align: right;
+  }
+
+  // ── Force page break between sections if needed ───────────────────
+  .page-break {
+    page-break-before: always;
   }
 }

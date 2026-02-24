@@ -1,4 +1,7 @@
-import { Component, OnInit, ChangeDetectorRef, ChangeDetectionStrategy } from '@angular/core';
+import {
+  Component, OnInit,
+  ChangeDetectionStrategy, ChangeDetectorRef, inject,
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, RouterModule } from '@angular/router';
 import { MatCardModule } from '@angular/material/card';
@@ -7,27 +10,32 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
-import { inject } from '@angular/core';
 import { ApiService } from '../../shared/services/api.service';
-import { FunctionReport } from '../../shared/models/models';
+import { FunctionReport, GiftReceived } from '../../shared/models/models';
 import { GiftReceivedFormDialogComponent } from '../../gifts/gift-received-form-dialog/gift-received-form-dialog.component';
+import { LocalDatePipe } from '../../shared/pipes/local-date.pipe';
 
 @Component({
   selector: 'app-function-detail',
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.OnPush,    // ← add this
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     CommonModule, RouterModule, MatCardModule, MatTableModule,
-    MatButtonModule, MatIconModule, MatChipsModule, MatDialogModule,
+    MatButtonModule, MatIconModule, MatChipsModule, MatDialogModule, LocalDatePipe
   ],
   template: `
     <div class="page" id="printable">
 
+      <!-- Toolbar -->
       <div class="page-header no-print">
-        <div>
-          <button mat-icon-button routerLink="/functions"><mat-icon>arrow_back</mat-icon></button>
+        <div class="header-left">
+          <button mat-icon-button routerLink="/functions">
+            <mat-icon>arrow_back</mat-icon>
+          </button>
           <span class="page-title">{{ report?.function?.name }}</span>
-          <span class="subtitle">&nbsp;{{ report?.function?.eventDate | date:'dd MMM yyyy' }}</span>
+          <span class="subtitle">
+            &nbsp;{{ report?.function?.eventDate | localDate:'dd MMM yyyy' }}
+          </span>
         </div>
         <div class="actions">
           <button mat-raised-button color="accent" (click)="openAddGift()">
@@ -40,9 +48,9 @@ import { GiftReceivedFormDialogComponent } from '../../gifts/gift-received-form-
       </div>
 
       <!-- Print Header -->
-      <div class="print-header print-only">
+      <div class="print-only print-header">
         <h1>{{ report?.function?.name }}</h1>
-        <p>Date: {{ report?.function?.eventDate | date:'dd MMMM yyyy' }}</p>
+        <p>Date: {{ report?.function?.eventDate | localDate:'dd MMMM yyyy' }}</p>
         @if (report?.function?.description) {
           <p>{{ report?.function?.description }}</p>
         }
@@ -59,7 +67,9 @@ import { GiftReceivedFormDialogComponent } from '../../gifts/gift-received-form-
         </mat-card>
         <mat-card class="stat-card green">
           <mat-card-content>
-            <div class="stat-val">₹{{ report?.summary?.totalCash || 0 | number:'1.0-0' }}</div>
+            <div class="stat-val">
+              ₹{{ report?.summary?.totalCash || 0 | number:'1.0-0' }}
+            </div>
             <div class="stat-label">Cash Received</div>
           </mat-card-content>
         </mat-card>
@@ -97,7 +107,9 @@ import { GiftReceivedFormDialogComponent } from '../../gifts/gift-received-form-
           <ng-container matColumnDef="type">
             <th mat-header-cell *matHeaderCellDef>Type</th>
             <td mat-cell *matCellDef="let g">
-              <mat-chip [class]="'chip-' + g.giftType">{{ g.giftType | titlecase }}</mat-chip>
+              <mat-chip [class]="'chip-' + g.giftType">
+                {{ g.giftType | titlecase }}
+              </mat-chip>
             </td>
           </ng-container>
           <ng-container matColumnDef="details">
@@ -110,7 +122,9 @@ import { GiftReceivedFormDialogComponent } from '../../gifts/gift-received-form-
           </ng-container>
           <ng-container matColumnDef="date">
             <th mat-header-cell *matHeaderCellDef>Date</th>
-            <td mat-cell *matCellDef="let g">{{ g.receivedDate | date:'dd/MM/yyyy' }}</td>
+            <td mat-cell *matCellDef="let g">
+              {{ g.receivedDate |  localDate:'dd/MM/yyyy' }}
+            </td>
           </ng-container>
           <ng-container matColumnDef="notes">
             <th mat-header-cell *matHeaderCellDef>Notes</th>
@@ -119,7 +133,12 @@ import { GiftReceivedFormDialogComponent } from '../../gifts/gift-received-form-
           <ng-container matColumnDef="actions">
             <th mat-header-cell *matHeaderCellDef class="no-print">Actions</th>
             <td mat-cell *matCellDef="let g" class="no-print">
-              <button mat-icon-button color="warn" (click)="deleteGift(g.id)">
+              <button mat-icon-button color="accent"
+                (click)="openEditGift(g)" title="Edit">
+                <mat-icon>edit</mat-icon>
+              </button>
+              <button mat-icon-button color="warn"
+                (click)="deleteGift(g.id)" title="Delete">
                 <mat-icon>delete</mat-icon>
               </button>
             </td>
@@ -128,10 +147,11 @@ import { GiftReceivedFormDialogComponent } from '../../gifts/gift-received-form-
           <tr mat-row *matRowDef="let row; columns: cols;"></tr>
         </table>
         @if (!gifts.length) {
-          <div class="empty">No gifts recorded yet. Click "Add Gift" to begin.</div>
+          <div class="empty">No gifts yet. Click "Add Gift" to begin.</div>
         }
       </mat-card>
 
+      <!-- Print Footer -->
       <div class="print-footer print-only">
         <p>Printed on: {{ today | date:'dd MMMM yyyy, hh:mm a' }}</p>
       </div>
@@ -139,7 +159,11 @@ import { GiftReceivedFormDialogComponent } from '../../gifts/gift-received-form-
   `,
   styles: [`
     .page { padding: 24px; }
-    .page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+    .page-header {
+      display: flex; justify-content: space-between;
+      align-items: center; margin-bottom: 20px;
+    }
+    .header-left { display: flex; align-items: center; }
     .page-title { font-size: 22px; font-weight: bold; }
     .subtitle { color: #666; }
     .actions { display: flex; gap: 8px; }
@@ -162,6 +186,7 @@ import { GiftReceivedFormDialogComponent } from '../../gifts/gift-received-form-
       .print-only { display: block !important; }
       .page { padding: 10mm; }
       .summary-row { flex-wrap: wrap; }
+      .stat-card { min-width: 100px; border: 1px solid #ddd; }
     }
   `],
 })
@@ -169,11 +194,12 @@ export class FunctionDetailComponent implements OnInit {
   private route = inject(ActivatedRoute);
   private api = inject(ApiService);
   private dialog = inject(MatDialog);
-  private cdr = inject(ChangeDetectorRef);   // ← inject CDR
+  private cdr = inject(ChangeDetectorRef);
 
   report?: FunctionReport;
-  gifts: any[] = [];                            // ← separate stable array for table
+  gifts: GiftReceived[] = [];
   functionId!: number;
+  // Add edit column to cols
   cols = ['sno', 'person', 'type', 'details', 'date', 'notes', 'actions'];
   today = new Date();
 
@@ -185,15 +211,15 @@ export class FunctionDetailComponent implements OnInit {
   load() {
     this.api.getFunctionReport(this.functionId).subscribe((data) => {
       this.report = data;
-      this.gifts = data?.giftsReceived ?? [];  // ← assign stable reference
-      this.cdr.markForCheck();                  // ← notify OnPush to re-render
+      this.gifts = data?.giftsReceived ?? [];
+      this.cdr.markForCheck();
     });
   }
 
   openAddGift() {
     const ref = this.dialog.open(GiftReceivedFormDialogComponent, {
       width: '560px',
-      data: { functionId: this.functionId },
+      data: { functionId: this.functionId, eventDate: this.report?.function?.eventDate, },
     });
     ref.afterClosed().subscribe((r) => { if (r) this.load(); });
   }
@@ -205,4 +231,17 @@ export class FunctionDetailComponent implements OnInit {
   }
 
   print() { window.print(); }
+
+  openEditGift(gift: GiftReceived) {
+    const ref = this.dialog.open(GiftReceivedFormDialogComponent, {
+      width: '560px',
+      data: {
+        functionId: this.functionId,
+        eventDate: this.report?.function?.eventDate,
+        gift,                    // ← pass existing gift for edit mode
+      },
+    });
+    ref.afterClosed().subscribe((r) => { if (r) this.load(); });
+  }
+
 }
