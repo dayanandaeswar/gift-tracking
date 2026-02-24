@@ -1,0 +1,41 @@
+# Create the database (if not already created)
+createdb -U postgres gift_tracker
+
+# Run the script
+psql -U postgres -d gift_tracker -f setup.sql
+
+
+Expected Output
+=================
+
+       tbl       | rows
+-----------------+------
+ users           |    1
+ functions       |    4
+ persons         |   10
+ gifts_received  |   24
+ gifts_given     |   11
+
+
+Overview
+===========
+
+
+users
+  id · username · password · created_at
+
+functions
+  id · name · description · event_date · created_at
+
+persons
+  id · name · address · phone · created_at
+
+gifts_received
+  id · function_id(FK) · person_id(FK) · gift_type
+  amount · voucher_details · item_description
+  quantity · notes · received_date · created_at
+
+gifts_given
+  id · person_id(FK) · function_name · gift_type
+  amount · voucher_details · item_description
+  quantity · notes · given_date · created_at
