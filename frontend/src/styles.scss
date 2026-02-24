@@ -1,0 +1,59 @@
+@use '@angular/material' as mat;
+@include mat.core();
+
+html,
+body {
+  height: 100%;
+  margin: 0;
+  font-family: Roboto, 'Helvetica Neue', sans-serif;
+}
+
+/* A4 Print Layout */
+@media print {
+  @page {
+    size: A4 portrait;
+    margin: 15mm;
+  }
+
+  body {
+    background: white !important;
+  }
+
+  .mat-sidenav-container {
+    display: block !important;
+  }
+  .mat-sidenav {
+    display: none !important;
+  }
+  .mat-sidenav-content {
+    margin-left: 0 !important;
+  }
+
+  table {
+    border-collapse: collapse;
+    width: 100%;
+  }
+
+  th,
+  td {
+    border: 1px solid #ddd;
+    padding: 6px 8px;
+    font-size: 11px;
+  }
+
+  th {
+    background: #f5f5f5 !important;
+    -webkit-print-color-adjust: exact;
+  }
+
+  .mat-mdc-tab-body-wrapper {
+    display: block !important;
+  }
+  .mat-mdc-tab-header {
+    display: none !important;
+  }
+  .mat-mdc-tab-body {
+    display: block !important;
+    visibility: visible !important;
+  }
+}
