@@ -1,0 +1,162 @@
+@import "tailwindcss";
+
+@theme {
+  /* Primary — violet */
+  --color-primary-50: #f5f3ff;
+  --color-primary-100: #ede9fe;
+  --color-primary-200: #ddd6fe;
+  --color-primary-500: #8b5cf6;
+  --color-primary-600: #7c3aed;
+  --color-primary-700: #6d28d9;
+  --color-primary-800: #5b21b6;
+  --color-primary-900: #4c1d95;
+
+  /* Accent — azure */
+  --color-accent-400: #38bdf8;
+  --color-accent-500: #0ea5e9;
+  --color-accent-600: #0284c7;
+
+  /* Semantic */
+  --color-success-100: #dcfce7;
+  --color-success-700: #15803d;
+  --color-warning-100: #fef9c3;
+  --color-warning-700: #a16207;
+  --color-info-100: #dbeafe;
+  --color-info-700: #1d4ed8;
+
+  /* New in Tailwind 4.2 — extended spacing scale */
+  --spacing-18: 4.5rem;
+  --spacing-22: 5.5rem;
+
+  /* New in Tailwind 4.2 — explicit font variants */
+  --font-size-2xs: 0.625rem;
+  --font-size-2xs--line-height: 1rem;
+}
+
+@layer base {
+  body {
+    @apply bg-gray-50 text-gray-900 antialiased;
+    font-family: "Inter", "Roboto", sans-serif;
+    /* Tailwind 4.2: scrollbar utilities */
+    scrollbar-width: thin;
+    scrollbar-color: theme(--color-primary-200) transparent;
+  }
+}
+
+@layer components {
+  .btn-primary {
+    @apply inline-flex items-center gap-2 rounded-lg bg-primary-600 px-4 py-2
+           text-sm font-semibold text-white shadow-sm transition
+           hover:bg-primary-700 active:scale-95
+           disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+  .btn-secondary {
+    @apply inline-flex items-center gap-2 rounded-lg border border-gray-300
+           bg-white px-4 py-2 text-sm font-semibold text-gray-700 shadow-sm
+           transition hover:bg-gray-50 active:scale-95
+           disabled:opacity-50;
+  }
+  .btn-danger {
+    @apply inline-flex items-center gap-2 rounded-lg bg-red-600 px-4 py-2
+           text-sm font-semibold text-white shadow-sm transition
+           hover:bg-red-700 active:scale-95;
+  }
+  .btn-icon {
+    @apply rounded-lg p-2 text-gray-500 transition
+           hover:bg-gray-100 hover:text-gray-700 active:scale-90;
+  }
+  .input {
+    @apply w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm
+           shadow-sm transition placeholder:text-gray-400
+           focus:border-primary-500 focus:outline-none
+           focus:ring-2 focus:ring-primary-500/20;
+  }
+  .label {
+    @apply block text-sm font-medium text-gray-700 mb-1;
+  }
+  .form-group {
+    @apply flex flex-col gap-1;
+  }
+  .card {
+    @apply rounded-xl border border-gray-200 bg-white shadow-sm;
+  }
+  .page-header {
+    @apply flex items-center justify-between mb-6;
+  }
+  .page-title {
+    @apply text-2xl font-bold text-gray-900;
+  }
+
+  /* Tailwind 4.2: use inline-size utilities for responsive columns */
+  .table-th {
+    @apply px-4 py-3 text-left text-xs font-semibold uppercase
+           tracking-wide text-gray-500 bg-gray-50;
+  }
+  .table-td {
+    @apply px-4 py-3 text-sm text-gray-700 border-t border-gray-100;
+  }
+}
+
+/* ── Printing ──────────────────────────────────────────────────── */
+body.printing > *:not(#print-container) {
+  display: none !important;
+}
+body.printing #print-container {
+  display: block !important;
+}
+
+@media print {
+  @page {
+    size: A4 portrait;
+    margin: 15mm;
+  }
+
+  html,
+  body {
+    height: auto !important;
+    overflow: visible !important;
+    background: white !important;
+  }
+
+  .sidebar,
+  .no-print {
+    display: none !important;
+  }
+  .print-only {
+    display: block !important;
+  }
+
+  /* Tailwind 4.2: use margin-inline-start instead of margin-left */
+  .main-content {
+    margin-inline-start: 0 !important;
+  }
+
+  .card {
+    box-shadow: none !important;
+    border: 1px solid #ccc !important;
+    overflow: visible !important;
+  }
+
+  table {
+    border-collapse: collapse;
+    width: 100%;
+  }
+  th,
+  td {
+    border: 1px solid #ccc !important;
+    padding: 5px 8px !important;
+    font-size: 11px !important;
+  }
+  th {
+    background: #eee !important;
+    print-color-adjust: exact;
+  }
+
+  .tab-panel {
+    display: block !important;
+    visibility: visible !important;
+  }
+  .print-footer {
+    display: block !important;
+  }
+}

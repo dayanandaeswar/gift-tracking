@@ -5,24 +5,70 @@ import { GiftReceived } from './gift-received.entity';
 import { FunctionEvent } from '../functions/function.entity';
 import { Person } from '../persons/person.entity';
 import { CreateGiftReceivedDto } from './dto/create-gift-received.dto';
+import {
+    ListGiftsReceivedDto,
+    GiftReceivedSortBy,
+} from './dto/list-gifts-received.dto';
+import { paginate } from '../common/helpers/paginate.helper';
+
+const SORT_COLUMN: Record<GiftReceivedSortBy, string> = {
+    person: 'person.name',
+    giftType: 'gr.gift_type',
+    amount: 'gr.amount',
+    receivedDate: 'gr.received_date',
+    createdAt: 'gr.created_at',
+};
 
 @Injectable()
 export class GiftsReceivedService {
     constructor(
         @InjectRepository(GiftReceived)
-        private repo: Repository<GiftReceived>,
+        private readonly repo: Repository<GiftReceived>,
         @InjectRepository(FunctionEvent)
-        private fnRepo: Repository<FunctionEvent>,
+        private readonly fnRepo: Repository<FunctionEvent>,
         @InjectRepository(Person)
-        private personRepo: Repository<Person>,
+        private readonly personRepo: Repository<Person>,
     ) { }
 
-    // ── Create ─────────────────────────────────────────────────────────
+    async list(dto: ListGiftsReceivedDto) {
+        const { page, pageSize, sortBy, sortDir, functionId } = dto;
+
+        const qb = this.repo
+            .createQueryBuilder('gr')
+            .leftJoinAndSelect('gr.person', 'person')
+            .leftJoinAndSelect('gr.function', 'function');
+
+        // Optional filter by function
+        if (functionId) {
+            qb.where('gr.function_id = :functionId', { functionId });
+        }
+
+        qb.orderBy(
+            SORT_COLUMN[sortBy],
+            sortDir.toUpperCase() as 'ASC' | 'DESC',
+        );
+
+        return paginate(qb, page, pageSize, sortBy, sortDir);
+    }
+
+    async findOne(id: number) {
+        const gift = await this.repo.findOne({
+            where: { id },
+            relations: ['person', 'function'],
+        });
+        if (!gift) throw new NotFoundException('Gift not found');
+        return gift;
+    }
+
     async create(dto: CreateGiftReceivedDto) {
-        const fn = await this.fnRepo.findOne({ where: { id: dto.functionId } });
+        const fn = await this.fnRepo.findOne({
+            where: { id: dto.functionId },
+        });
         if (!fn) throw new NotFoundException('Function not found');
 
-        const person = await this.personRepo.findOne({ where: { id: dto.personId } });
+        const person = await this.personRepo.findOne({
+            where: { id: dto.personId },
+        });
         if (!person) throw new NotFoundException('Person not found');
 
         const gift = this.repo.create({
@@ -33,58 +79,50 @@ export class GiftsReceivedService {
             quantity: dto.quantity ?? 1,
             notes: dto.notes,
             receivedDate: dto.receivedDate,
-            function: fn,      // ← assign relation object, not ID
-            person,                   // ← assign relation object, not ID
+            function: fn,
+            person,
         });
 
         return this.repo.save(gift);
     }
 
-    // ── Update ─────────────────────────────────────────────────────────
     async update(id: number, dto: Partial<CreateGiftReceivedDto>) {
-        // Load existing gift with relations
         const gift = await this.repo.findOne({
             where: { id },
-            relations: ['function', 'person'],
+            relations: ['person', 'function'],
         });
         if (!gift) throw new NotFoundException('Gift not found');
 
-        // Update person relation if personId provided
         if (dto.personId) {
             const person = await this.personRepo.findOne({
                 where: { id: dto.personId },
             });
             if (!person) throw new NotFoundException('Person not found');
-            gift.person = person;     // ← assign relation object
+            gift.person = person;
         }
 
-        // Update function relation if functionId provided
         if (dto.functionId) {
             const fn = await this.fnRepo.findOne({
                 where: { id: dto.functionId },
             });
             if (!fn) throw new NotFoundException('Function not found');
-            gift.function = fn;       // ← assign relation object
+            gift.function = fn;
         }
 
-        // Update all scalar fields — exclude relation IDs
-        const { personId, functionId, ...scalarFields } = dto;
+        const { personId, functionId, ...fields } = dto;
+        if (fields.giftType !== undefined) gift.giftType = fields.giftType;
+        if (fields.amount !== undefined) gift.amount = fields.amount;
+        if (fields.voucherDetails !== undefined) gift.voucherDetails = fields.voucherDetails;
+        if (fields.itemDescription !== undefined) gift.itemDescription = fields.itemDescription;
+        if (fields.quantity !== undefined) gift.quantity = fields.quantity;
+        if (fields.notes !== undefined) gift.notes = fields.notes;
+        if (fields.receivedDate !== undefined) gift.receivedDate = fields.receivedDate;
 
-        if (scalarFields.giftType !== undefined) gift.giftType = scalarFields.giftType;
-        if (scalarFields.amount !== undefined) gift.amount = scalarFields.amount;
-        if (scalarFields.voucherDetails !== undefined) gift.voucherDetails = scalarFields.voucherDetails;
-        if (scalarFields.itemDescription !== undefined) gift.itemDescription = scalarFields.itemDescription;
-        if (scalarFields.quantity !== undefined) gift.quantity = scalarFields.quantity;
-        if (scalarFields.notes !== undefined) gift.notes = scalarFields.notes;
-        if (scalarFields.receivedDate !== undefined) gift.receivedDate = scalarFields.receivedDate;
-
-        return this.repo.save(gift);  // ← save() handles relations correctly
+        return this.repo.save(gift);
     }
 
-    // ── Delete ─────────────────────────────────────────────────────────
     async remove(id: number) {
-        const gift = await this.repo.findOne({ where: { id } });
-        if (!gift) throw new NotFoundException('Gift not found');
+        const gift = await this.findOne(id);
         return this.repo.remove(gift);
     }
 }

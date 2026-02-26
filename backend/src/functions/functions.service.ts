@@ -3,18 +3,33 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { FunctionEvent } from './function.entity';
 import { CreateFunctionDto } from './dto/create-function.dto';
+import { ListFunctionsDto, FunctionSortBy } from './dto/list-functions.dto';
+import { paginate } from '../common/helpers/paginate.helper';
+
+// Maps DTO sort keys to actual DB columns
+const SORT_COLUMN: Record<FunctionSortBy, string> = {
+    name: 'fn.name',
+    eventDate: 'fn.event_date',
+    createdAt: 'fn.created_at',
+};
 
 @Injectable()
 export class FunctionsService {
     constructor(
-        @InjectRepository(FunctionEvent) private repo: Repository<FunctionEvent>,
+        @InjectRepository(FunctionEvent)
+        private readonly repo: Repository<FunctionEvent>,
     ) { }
 
-    findAll() {
-        return this.repo.find({
-            relations: ['giftsReceived'],
-            order: { createdAt: 'DESC' },
-        });
+    async list(dto: ListFunctionsDto) {
+        const { page, pageSize, sortBy, sortDir } = dto;
+
+        const qb = this.repo
+            .createQueryBuilder('fn')
+            // Count gifts per function without loading all gift data
+            .loadRelationCountAndMap('fn.giftsCount', 'fn.giftsReceived')
+            .orderBy(SORT_COLUMN[sortBy], sortDir.toUpperCase() as 'ASC' | 'DESC');
+
+        return paginate(qb, page, pageSize, sortBy, sortDir);
     }
 
     async findOne(id: number) {
@@ -26,14 +41,15 @@ export class FunctionsService {
         return fn;
     }
 
-    create(dto: CreateFunctionDto) {
-        return this.repo.save(this.repo.create(dto));
+    async create(dto: CreateFunctionDto) {
+        const fn = this.repo.create(dto);
+        return this.repo.save(fn);
     }
 
     async update(id: number, dto: Partial<CreateFunctionDto>) {
-        await this.findOne(id);
-        await this.repo.update(id, dto);
-        return this.findOne(id);
+        const fn = await this.findOne(id);
+        Object.assign(fn, dto);
+        return this.repo.save(fn);
     }
 
     async remove(id: number) {

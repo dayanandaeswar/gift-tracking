@@ -3,36 +3,51 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Person } from './person.entity';
 import { CreatePersonDto } from './dto/create-person.dto';
+import { ListPersonsDto, PersonSortBy } from './dto/list-persons.dto';
+import { paginate } from '../common/helpers/paginate.helper';
+
+const SORT_COLUMN: Record<PersonSortBy, string> = {
+    name: 'p.name',
+    phone: 'p.phone',
+    createdAt: 'p.created_at',
+};
 
 @Injectable()
 export class PersonsService {
-    constructor(@InjectRepository(Person) private repo: Repository<Person>) { }
+    constructor(
+        @InjectRepository(Person)
+        private readonly repo: Repository<Person>,
+    ) { }
 
-    findAll() {
-        return this.repo.find({ order: { name: 'ASC' } });
+    async list(dto: ListPersonsDto) {
+        const { page, pageSize, sortBy, sortDir } = dto;
+
+        const qb = this.repo
+            .createQueryBuilder('p')
+            .orderBy(SORT_COLUMN[sortBy], sortDir.toUpperCase() as 'ASC' | 'DESC');
+
+        return paginate(qb, page, pageSize, sortBy, sortDir);
     }
 
     async findOne(id: number) {
-        const p = await this.repo.findOne({
-            where: { id },
-            relations: ['giftsReceived', 'giftsReceived.function', 'giftsGiven'],
-        });
-        if (!p) throw new NotFoundException('Person not found');
-        return p;
+        const person = await this.repo.findOne({ where: { id } });
+        if (!person) throw new NotFoundException('Person not found');
+        return person;
     }
 
-    create(dto: CreatePersonDto) {
-        return this.repo.save(this.repo.create(dto));
+    async create(dto: CreatePersonDto) {
+        const person = this.repo.create(dto);
+        return this.repo.save(person);
     }
 
     async update(id: number, dto: Partial<CreatePersonDto>) {
-        await this.findOne(id);
-        await this.repo.update(id, dto);
-        return this.findOne(id);
+        const person = await this.findOne(id);
+        Object.assign(person, dto);
+        return this.repo.save(person);
     }
 
     async remove(id: number) {
-        const p = await this.findOne(id);
-        return this.repo.remove(p);
+        const person = await this.findOne(id);
+        return this.repo.remove(person);
     }
 }
